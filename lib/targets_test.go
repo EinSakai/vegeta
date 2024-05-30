@@ -32,7 +32,7 @@ func TestTargetRequest(t *testing.T) {
 			"Host":                []string{"lolcathost"},
 		},
 	}
-	req, _ := tgt.Request()
+	req, _ := tgt.Request(0)
 
 	reqBody, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -71,7 +71,7 @@ func TestTargetRequest_EmptyBody(t *testing.T) {
 			"Host":                []string{"lolcathost"},
 		},
 	}
-	req, _ := tgt.Request()
+	req, _ := tgt.Request(0)
 	if req.Body != nil {
 		t.Fatal("Body should be nil")
 	}

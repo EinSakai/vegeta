@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/rs/dnscache"
@@ -20,6 +21,7 @@ import (
 
 // Attacker is an attack executor which wraps an http.Client
 type Attacker struct {
+	hitCount   uint64
 	dialer     *net.Dialer
 	client     http.Client
 	stopch     chan struct{}
@@ -71,6 +73,7 @@ func NewAttacker(opts ...func(*Attacker)) *Attacker {
 		workers:    DefaultWorkers,
 		maxWorkers: DefaultMaxWorkers,
 		maxBody:    DefaultMaxBody,
+		hitCount:   0,
 	}
 
 	a.dialer = &net.Dialer{
@@ -94,6 +97,10 @@ func NewAttacker(opts ...func(*Attacker)) *Attacker {
 	}
 
 	return a
+}
+
+func (a *Attacker) HitCount() uint64 {
+	return atomic.AddUint64(&(a.hitCount), 1)
 }
 
 // Workers returns a functional option which sets the initial number of workers
@@ -515,7 +522,7 @@ func (a *Attacker) hit(tr Targeter, atk *attack) *Result {
 	res.Method = tgt.Method
 	res.URL = tgt.URL
 
-	req, err := tgt.Request()
+	req, err := tgt.Request(a.HitCount())
 	if err != nil {
 		return &res
 	}

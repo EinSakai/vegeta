@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -30,10 +31,11 @@ type Target struct {
 
 // Request creates an *http.Request out of Target and returns it along with an
 // error in case of failure.
-func (t *Target) Request() (*http.Request, error) {
+func (t *Target) Request(hitCount uint64) (*http.Request, error) {
 	var body io.Reader
 	if len(t.Body) != 0 {
-		body = bytes.NewReader(t.Body)
+		newBodyStr := strings.ReplaceAll(string(t.Body), "${hit_count}$", strconv.FormatUint(hitCount, 10))
+		body = bytes.NewReader([]byte(newBodyStr))
 	}
 
 	req, err := http.NewRequest(t.Method, t.URL, body)
