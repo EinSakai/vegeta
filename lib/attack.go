@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -520,9 +521,10 @@ func (a *Attacker) hit(tr Targeter, atk *attack) *Result {
 	}
 
 	res.Method = tgt.Method
-	res.URL = tgt.URL
+	hitCount := strconv.FormatUint(a.HitCount(), 10)
+	res.URL = strings.ReplaceAll(tgt.URL, "${hit_count}$", hitCount)
 
-	req, err := tgt.Request(a.HitCount())
+	req, err := tgt.Request(hitCount)
 	if err != nil {
 		return &res
 	}
